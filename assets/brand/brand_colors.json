@@ -1,0 +1,12 @@
+{
+  "primary": "#4F46E5",
+  "secondary": "#22C55E",
+  "accent": "#F59E0B",
+  "glass_bg_light": "rgba(255,255,255,0.12)",
+  "glass_bg_dark": "rgba(255,255,255,0.08)",
+  "glass_border_light": "rgba(255,255,255,0.35)",
+  "glass_border_dark": "rgba(255,255,255,0.22)",
+  "brand_yellow": "#F9EEA6",
+  "brand_yellow_hover": "#F7ECAC",
+  "brand_yellow_tint": "#FCF7D8"
+}
