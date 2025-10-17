@@ -1,0 +1,13 @@
+{
+  "app": {
+    "name": "{{APP_NAME}}"
+  },
+  "common": {
+    "ok": "OK",
+    "cancel": "Cancel",
+    "retry": "Retry",
+    "search": "Search",
+    "total": "Total",
+    "book_now": "Book Now"
+  }
+}

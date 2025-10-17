@@ -1,0 +1,47 @@
+[
+  {
+    "id": "x1",
+    "title": {
+      "ar": "عنصر تجريبي 1",
+      "en": "Sample Item 1"
+    },
+    "description": {
+      "ar": "سيارة مميزة بميزات متقدمة",
+      "en": "A standout vehicle with advanced amenities"
+    },
+    "images": [
+      "gradient:sunrise"
+    ],
+    "price": 49.0,
+    "rating": 4.6,
+    "tags": [
+      "featured",
+      "new"
+    ],
+    "gearbox": "automatic",
+    "fuel": "electric",
+    "seats": 4
+  },
+  {
+    "id": "x2",
+    "title": {
+      "ar": "عنصر تجريبي 2",
+      "en": "Sample Item 2"
+    },
+    "description": {
+      "ar": "خيار اقتصادي بقدرات رائعة",
+      "en": "An economic option with great capabilities"
+    },
+    "images": [
+      "gradient:seabreeze"
+    ],
+    "price": 39.5,
+    "rating": 4.2,
+    "tags": [
+      "budget"
+    ],
+    "gearbox": "manual",
+    "fuel": "hybrid",
+    "seats": 5
+  }
+]
