@@ -5,10 +5,12 @@ import 'core/router/app_router.dart';
 import 'core/utils/app_settings.dart';
 import 'core/utils/app_settings_scope.dart';
 import 'theme/theme.dart';
+import 'theme/colors.dart';
 
-void main() {
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   final settings = AppSettings();
+  await settings.init();
   runApp(AppBootstrap(settings: settings));
 }
 
@@ -30,7 +32,6 @@ class _AppBootstrapState extends State<AppBootstrap> {
     super.initState();
     _routeState = ValueNotifier<AppRoutePath>(const AppRoutePath('/splash'));
     _routerConfig = createRouter(_routeState);
-    widget.settings.load();
   }
 
   @override
@@ -42,6 +43,17 @@ class _AppBootstrapState extends State<AppBootstrap> {
           return const MaterialApp(home: SizedBox());
         }
         final locale = widget.settings.locale;
+        final brand = widget.settings.brand;
+        AppBrand.primary = brand.primary;
+        AppBrand.secondary = brand.secondary;
+        AppBrand.accent = brand.accent;
+        AppBrand.glassBgLight = brand.glassBgLight;
+        AppBrand.glassBgDark = brand.glassBgDark;
+        AppBrand.glassBorderLight = brand.glassBorderLight;
+        AppBrand.glassBorderDark = brand.glassBorderDark;
+        AppBrand.brandYellow = brand.brandYellow;
+        AppBrand.brandYellowHover = brand.brandYellowHover;
+        AppBrand.brandYellowTint = brand.brandYellowTint;
         final lightTheme = AppTheme.light(locale);
         final darkTheme = AppTheme.dark(locale);
         return AppSettingsScope(

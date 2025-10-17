@@ -10,7 +10,7 @@ void main() {
   test('updates locale and notifies listeners', () async {
     SharedPreferences.setMockInitialValues({});
     final settings = AppSettings();
-    await settings.load();
+    await settings.init();
     expect(settings.locale.languageCode, 'ar');
     var notified = false;
     settings.addListener(() => notified = true);

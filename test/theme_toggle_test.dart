@@ -10,7 +10,7 @@ void main() {
   test('changes theme mode', () async {
     SharedPreferences.setMockInitialValues({});
     final settings = AppSettings();
-    await settings.load();
+    await settings.init();
     expect(settings.themeMode, ThemeMode.system);
     await settings.updateTheme(ThemeMode.dark);
     expect(settings.themeMode, ThemeMode.dark);
