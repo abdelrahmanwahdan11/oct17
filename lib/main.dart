@@ -73,6 +73,7 @@ class _AppRootState extends State<AppRoot> {
             navigatorKey: AppRouter.navigatorKey,
             onGenerateRoute: AppRouter.onGenerateRoute,
             navigatorObservers: [AppRouter.observer],
+            initialRoute: AppRoutes.splash,
             locale: locale,
             supportedLocales: AppLocalizations.supportedLocales,
             localizationsDelegates: AppLocalizations.localizationsDelegates,
