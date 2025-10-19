@@ -1,0 +1,77 @@
+{
+  "app": {
+    "name": "ORRISO"
+  },
+  "general": {
+    "skip": "Skip",
+    "next": "Next",
+    "getStarted": "Get Started",
+    "save": "Save",
+    "cancel": "Cancel",
+    "close": "Close",
+    "search": "Search",
+    "loading": "Loading",
+    "pullToRefresh": "Pull to refresh",
+    "empty": "No items yet",
+    "retry": "Retry"
+  },
+  "onboarding": {
+    "title1": "Discover auctions",
+    "title2": "Request what you need",
+    "title3": "Smart notifications",
+    "body1": "Browse rare glass pieces in a soft glass UI.",
+    "body2": "Publish a precise buy request and get matched instantly.",
+    "body3": "Receive alerts when auctions are ending or you are outbid."
+  },
+  "auth": {
+    "login": "Sign in",
+    "register": "Create account",
+    "email": "Email",
+    "password": "Password",
+    "forgot": "Forgot password?",
+    "guest": "Continue as guest",
+    "name": "Full name",
+    "confirm": "Confirm",
+    "createAccount": "Need an account?",
+    "haveAccount": "Already have an account?",
+    "logout": "Log out"
+  },
+  "home": {
+    "searchHint": "Search auctions & buy requests",
+    "chipSoon": "Ending soon",
+    "chipRecent": "Newest",
+    "chipBids": "Most bids",
+    "listYourItem": "List your item",
+    "empty": "No auctions right now",
+    "emptyCta": "Create auction"
+  },
+  "auctions": {
+    "currentBid": "Current bid",
+    "minIncrement": "Min increment",
+    "placeBid": "Place bid",
+    "autoBid": "Enable auto max",
+    "share": "Share",
+    "details": "Auction details",
+    "endingSoon": "Ending soon",
+    "list": "All auctions",
+    "sortSoon": "Ending soon",
+    "sortRecent": "Newest",
+    "sortBids": "Highest bid",
+    "bidPlaced": "Bid placed",
+    "auctionEnded": "Auction ended"
+  },
+  "requests": {
+    "list": "Buy requests",
+    "searchHint": "Search buy requests",
+    "sortRecent": "Newest",
+    "sortPriority": "High priority",
+    "sortDeadline": "Deadline near"
+  },
+  "settings": {
+    "title": "Settings",
+    "darkMode": "Dark mode",
+    "language": "Language",
+    "notifications": "Notifications",
+    "clearCache": "Clear local storage"
+  }
+}
