@@ -8,8 +8,15 @@ import '../../navigation/app_scope.dart';
 import '../../widgets/cards/product_card.dart';
 import '../../widgets/common/app_search_bar.dart';
 
-class WishlistScreen extends StatelessWidget {
+class WishlistScreen extends StatefulWidget {
   const WishlistScreen({super.key});
+
+  @override
+  State<WishlistScreen> createState() => _WishlistScreenState();
+}
+
+class _WishlistScreenState extends State<WishlistScreen> {
+  String _query = '';
 
   @override
   Widget build(BuildContext context) {
@@ -22,9 +29,15 @@ class WishlistScreen extends StatelessWidget {
       animation: wishlistController,
       builder: (context, _) {
         final items = wishlistController.products;
+        final filtered = _query.isEmpty
+            ? items
+            : items
+                .where((product) => product.title.toLowerCase().contains(_query.toLowerCase()))
+                .toList();
+        final isEmpty = filtered.isEmpty;
         return Scaffold(
           appBar: AppBar(
-            title: const Text('My Wishlist'),
+            title: Text(localization.translate('wishlist')),
             actions: [
               IconButton(
                 onPressed: () => Navigator.of(context).pushNamed('cart'),
@@ -38,13 +51,12 @@ class WishlistScreen extends StatelessWidget {
               children: [
                 AppSearchBar(
                   hintText: localization.translate('search_hint'),
-                  onChanged: (_) {},
-                  onFilter: () {},
+                  onChanged: (value) => setState(() => _query = value),
                   filterIcon: Icons.sort,
                 ),
                 const SizedBox(height: 12),
-                if (items.isEmpty)
-                  _EmptyWishlist(localization: localization)
+                if (isEmpty)
+                  Expanded(child: _EmptyWishlist(localization: localization))
                 else
                   Expanded(
                     child: GridView.builder(
@@ -54,9 +66,9 @@ class WishlistScreen extends StatelessWidget {
                         crossAxisSpacing: 12,
                         mainAxisSpacing: 12,
                       ),
-                      itemCount: items.length,
+                      itemCount: filtered.length,
                       itemBuilder: (context, index) {
-                        final product = items[index];
+                        final product = filtered[index];
                         return ProductCard(
                           product: product,
                           onTap: () => Navigator.of(context).pushNamed(
@@ -80,8 +92,9 @@ class WishlistScreen extends StatelessWidget {
   void _addToCart(BuildContext context, CartController cartController, Product product) {
     final size = product.sizes.isNotEmpty ? product.sizes.first : 'M';
     cartController.addToCart(product, size: size);
+    final localization = AppLocalizations.of(context);
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Added to cart')),
+      SnackBar(content: Text(localization.translate('added_to_cart'))),
     );
   }
 }
@@ -93,23 +106,22 @@ class _EmptyWishlist extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Expanded(
-      child: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              localization.translate('wishlist_empty_title'),
-              style: Theme.of(context).textTheme.displaySmall,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              localization.translate('wishlist_empty_subtitle'),
-              textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.bodyMedium,
-            ),
-          ],
-        ),
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(
+            localization.translate('wishlist_empty_title'),
+            style: Theme.of(context).textTheme.displaySmall,
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 8),
+          Text(
+            localization.translate('wishlist_empty_subtitle'),
+            textAlign: TextAlign.center,
+            style: Theme.of(context).textTheme.bodyMedium,
+          ),
+        ],
       ),
     );
   }

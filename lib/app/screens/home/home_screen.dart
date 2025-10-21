@@ -108,8 +108,9 @@ class HomeScreen extends StatelessWidget {
   void _addToCart(BuildContext context, CartController cartController, Product product) {
     final size = product.sizes.isNotEmpty ? product.sizes.first : 'M';
     cartController.addToCart(product, size: size);
+    final localization = AppLocalizations.of(context);
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Added to cart')),
+      SnackBar(content: Text(localization.translate('added_to_cart'))),
     );
   }
 }

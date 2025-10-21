@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math';
 
 import '../models/product.dart';
 
@@ -8,6 +9,7 @@ class ProductsRepository {
   }
 
   final List<Product> _products = [];
+  List<String>? _cachedCategories;
 
   void _seedProducts() {
     if (_products.isNotEmpty) return;
@@ -204,6 +206,8 @@ class ProductsRepository {
     String? category,
     String? gender,
     String? searchTerm,
+    double? minPrice,
+    double? maxPrice,
   }) async {
     await Future<void>.delayed(const Duration(milliseconds: 500));
     Iterable<Product> filtered = _products;
@@ -219,6 +223,12 @@ class ProductsRepository {
     if (searchTerm != null && searchTerm.isNotEmpty) {
       final query = searchTerm.toLowerCase();
       filtered = filtered.where((product) => product.title.toLowerCase().contains(query));
+    }
+
+    if (minPrice != null || maxPrice != null) {
+      final lower = minPrice ?? double.negativeInfinity;
+      final upper = maxPrice ?? double.infinity;
+      filtered = filtered.where((product) => product.price >= lower && product.price <= upper);
     }
 
     final start = page * pageSize;
@@ -256,5 +266,23 @@ class ProductsRepository {
       return null;
     }
     return product.copyWith(isFavorite: favoriteIds.contains(product.id));
+  }
+
+  double get minPrice {
+    if (_products.isEmpty) {
+      return 0;
+    }
+    return _products.map((product) => product.price).reduce(min);
+  }
+
+  double get maxPrice {
+    if (_products.isEmpty) {
+      return 0;
+    }
+    return _products.map((product) => product.price).reduce(max);
+  }
+
+  List<String> get categories {
+    return _cachedCategories ??= _products.map((product) => product.category).toSet().toList()..sort();
   }
 }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../controllers/cart_controller.dart';
+import '../../localization/app_localizations.dart';
 import '../../navigation/app_scope.dart';
 import '../../theme/app_colors.dart';
 import '../../widgets/common/qty_stepper.dart';
@@ -11,6 +12,7 @@ class CartScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cartController = AppScope.of(context).cart;
+    final localization = AppLocalizations.of(context);
     return AnimatedBuilder(
       animation: cartController,
       builder: (context, _) {
@@ -18,7 +20,7 @@ class CartScreen extends StatelessWidget {
         return Scaffold(
           appBar: AppBar(
             leading: const BackButton(),
-            title: const Text('My Cart'),
+            title: Text(localization.translate('cart_title')),
           ),
           body: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
@@ -26,7 +28,7 @@ class CartScreen extends StatelessWidget {
               children: [
                 Expanded(
                   child: lines.isEmpty
-                      ? const _EmptyCart()
+                      ? _EmptyCart(localization: localization)
                       : ListView.separated(
                           itemCount: lines.length,
                           separatorBuilder: (_, __) => const SizedBox(height: 12),
@@ -54,9 +56,9 @@ class CartScreen extends StatelessWidget {
                         ),
                 ),
                 const SizedBox(height: 16),
-                _CouponRow(),
+                _CouponRow(localization: localization),
                 const SizedBox(height: 16),
-                _Totals(cartController: cartController),
+                _Totals(cartController: cartController, localization: localization),
               ],
             ),
           ),
@@ -69,11 +71,11 @@ class CartScreen extends StatelessWidget {
                 child: ElevatedButton.icon(
                   onPressed: () {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Checkout not implemented (mock)')),
+                      SnackBar(content: Text(localization.translate('checkout_mock'))),
                     );
                   },
                   icon: const Icon(Icons.arrow_forward),
-                  label: const Text('Checkout'),
+                  label: Text(localization.translate('checkout')),
                 ),
               ),
             ),
@@ -137,6 +139,10 @@ class _CartTile extends StatelessWidget {
 }
 
 class _CouponRow extends StatelessWidget {
+  const _CouponRow({required this.localization});
+
+  final AppLocalizations localization;
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -148,16 +154,17 @@ class _CouponRow extends StatelessWidget {
       ),
       child: Row(
         children: [
-          const Expanded(
+          Expanded(
             child: TextField(
-              decoration: InputDecoration.collapsed(hintText: 'Enter Discount Code'),
+              decoration:
+                  InputDecoration.collapsed(hintText: localization.translate('discount_code_hint')),
             ),
           ),
           const SizedBox(width: 12),
           ElevatedButton(
             onPressed: () {},
             style: ElevatedButton.styleFrom(backgroundColor: AppColors.orange),
-            child: const Text('Apply'),
+            child: Text(localization.translate('apply')),
           ),
         ],
       ),
@@ -166,9 +173,10 @@ class _CouponRow extends StatelessWidget {
 }
 
 class _Totals extends StatelessWidget {
-  const _Totals({required this.cartController});
+  const _Totals({required this.cartController, required this.localization});
 
   final CartController cartController;
+  final AppLocalizations localization;
 
   @override
   Widget build(BuildContext context) {
@@ -187,11 +195,11 @@ class _Totals extends StatelessWidget {
       ),
       child: Column(
         children: [
-          _TotalRow(label: 'Subtotal', value: cartController.subtotal),
+          _TotalRow(label: localization.translate('subtotal'), value: cartController.subtotal),
           const SizedBox(height: 8),
-          _TotalRow(label: 'Discount', value: cartController.discount),
+          _TotalRow(label: localization.translate('discount'), value: cartController.discount),
           const Divider(height: 24),
-          _TotalRow(label: 'Total', value: cartController.total, highlight: true),
+          _TotalRow(label: localization.translate('total'), value: cartController.total, highlight: true),
         ],
       ),
     );
@@ -224,17 +232,19 @@ class _TotalRow extends StatelessWidget {
 }
 
 class _EmptyCart extends StatelessWidget {
-  const _EmptyCart();
+  const _EmptyCart({required this.localization});
+
+  final AppLocalizations localization;
 
   @override
   Widget build(BuildContext context) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
-        children: const [
-          Icon(Icons.shopping_bag_outlined, size: 64, color: AppColors.textSecondary),
-          SizedBox(height: 16),
-          Text('Your cart is empty'),
+        children: [
+          const Icon(Icons.shopping_bag_outlined, size: 64, color: AppColors.textSecondary),
+          const SizedBox(height: 16),
+          Text(localization.translate('cart_empty')),
         ],
       ),
     );

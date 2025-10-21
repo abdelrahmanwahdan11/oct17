@@ -1,14 +1,24 @@
-import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 
 import '../models/product.dart';
 import '../repositories/products_repository.dart';
 import '../utils/debouncer.dart';
 
 class ProductsController extends ChangeNotifier {
-  ProductsController({required this.repository}) : _debouncer = Debouncer();
+  ProductsController({required this.repository})
+      : _debouncer = Debouncer(),
+        _minAvailablePrice = repository.minPrice,
+        _maxAvailablePrice = repository.maxPrice,
+        _currentMinPrice = repository.minPrice,
+        _currentMaxPrice = repository.maxPrice;
 
   final ProductsRepository repository;
   final Debouncer _debouncer;
+
+  final double _minAvailablePrice;
+  final double _maxAvailablePrice;
+  double _currentMinPrice;
+  double _currentMaxPrice;
 
   static const int _pageSize = 10;
 
@@ -20,6 +30,7 @@ class ProductsController extends ChangeNotifier {
   int _page = 0;
   String _searchTerm = '';
   String _audience = 'All';
+  String _category = 'All';
   Set<String> _favoriteIds = <String>{};
 
   List<Product> _popularProducts = <Product>[];
@@ -33,6 +44,11 @@ class ProductsController extends ChangeNotifier {
   List<Product> get gridProducts => _gridProducts;
   String get selectedAudience => _audience;
   String get searchTerm => _searchTerm;
+  String get selectedCategory => _category;
+  RangeValues get selectedPriceRange => RangeValues(_currentMinPrice, _currentMaxPrice);
+  double get minAvailablePrice => _minAvailablePrice;
+  double get maxAvailablePrice => _maxAvailablePrice;
+  List<String> get categories => <String>{'All', ...repository.categories}.toList();
 
   Future<void> initialize({Set<String> favoriteIds = const <String>{}}) async {
     _favoriteIds = favoriteIds;
@@ -63,6 +79,9 @@ class ProductsController extends ChangeNotifier {
       favoriteIds: _favoriteIds,
       gender: _audience,
       searchTerm: _searchTerm,
+      category: _category,
+      minPrice: _currentMinPrice,
+      maxPrice: _currentMaxPrice,
     );
 
     if (resetPage) {
@@ -97,17 +116,20 @@ class ProductsController extends ChangeNotifier {
   void setAudience(String audience) {
     if (_audience == audience) return;
     _audience = audience;
-    _debouncer(() {
-      refresh();
-    });
+    _scheduleRefresh();
+    notifyListeners();
+  }
+
+  void setCategory(String category) {
+    if (_category == category) return;
+    _category = category;
+    _scheduleRefresh();
     notifyListeners();
   }
 
   void setSearchTerm(String value) {
     _searchTerm = value;
-    _debouncer(() {
-      refresh();
-    });
+    _scheduleRefresh();
     notifyListeners();
   }
 
@@ -124,6 +146,58 @@ class ProductsController extends ChangeNotifier {
 
   Product? findById(String id) {
     return repository.getById(id, favoriteIds: _favoriteIds);
+  }
+
+  Future<void> applyFilters({
+    String? gender,
+    String? category,
+    double? minPrice,
+    double? maxPrice,
+  }) async {
+    bool hasChanged = false;
+
+    if (gender != null && _audience != gender) {
+      _audience = gender;
+      hasChanged = true;
+    }
+
+    if (category != null && _category != category) {
+      _category = category;
+      hasChanged = true;
+    }
+
+    if (minPrice != null && maxPrice != null) {
+      final clampedMin = minPrice.clamp(_minAvailablePrice, _maxAvailablePrice);
+      final clampedMax = maxPrice.clamp(_minAvailablePrice, _maxAvailablePrice);
+      if (_currentMinPrice != clampedMin || _currentMaxPrice != clampedMax) {
+        _currentMinPrice = clampedMin.toDouble();
+        _currentMaxPrice = clampedMax.toDouble();
+        hasChanged = true;
+      }
+    }
+
+    if (!hasChanged) {
+      notifyListeners();
+      return;
+    }
+
+    notifyListeners();
+    await refresh();
+  }
+
+  Future<void> resetFilters() async {
+    _audience = 'All';
+    _category = 'All';
+    _currentMinPrice = _minAvailablePrice;
+    _currentMaxPrice = _maxAvailablePrice;
+    notifyListeners();
+    await refresh();
+  }
+
+  void _scheduleRefresh() {
+    _debouncer(() {
+      refresh();
+    });
   }
 
   @override

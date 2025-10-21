@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../controllers/cart_controller.dart';
 import '../../controllers/products_controller.dart';
 import '../../controllers/wishlist_controller.dart';
+import '../../localization/app_localizations.dart';
 import '../../models/product.dart';
 import '../../navigation/app_scope.dart';
 import '../../theme/app_colors.dart';
@@ -42,6 +43,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
     final productsController = scope.products;
     final wishlistController = scope.wishlist;
     final cartController = scope.cart;
+    final localization = AppLocalizations.of(context);
 
     return AnimatedBuilder(
       animation: wishlistController,
@@ -50,7 +52,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
         if (product == null) {
           return Scaffold(
             appBar: AppBar(leading: const BackButton()),
-            body: const Center(child: Text('Product not found')),
+            body: Center(child: Text(localization.translate('product_not_found'))),
           );
         }
 
@@ -59,7 +61,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
         return Scaffold(
           appBar: AppBar(
             leading: const BackButton(),
-            title: const Text('Details'),
+            title: Text(localization.translate('details')),
             actions: [
               IconButton(onPressed: () {}, icon: const Icon(Icons.share_outlined)),
               IconButton(
@@ -79,72 +81,81 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 _ImageGallery(
-              product: product,
-              controller: _pageController,
-              currentPage: _currentPage,
-              onPageChanged: (index) => setState(() => _currentPage = index),
-              onThumbnailTap: (index) {
-                _pageController.animateToPage(
-                  index,
-                  duration: const Duration(milliseconds: 220),
-                  curve: Curves.easeInOut,
-                );
-                setState(() => _currentPage = index);
-              },
-            ),
-            const SizedBox(height: 16),
-            Text(
-              product.title,
-              style: Theme.of(context).textTheme.displaySmall,
-            ),
-            const SizedBox(height: 8),
-            Row(
-              children: [
-                Text(
-                  '${String.fromCharCode(36)}${product.price.toStringAsFixed(0)}',
-                  style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: AppColors.orange),
+                  product: product,
+                  controller: _pageController,
+                  currentPage: _currentPage,
+                  onPageChanged: (index) => setState(() => _currentPage = index),
+                  onThumbnailTap: (index) {
+                    _pageController.animateToPage(
+                      index,
+                      duration: const Duration(milliseconds: 220),
+                      curve: Curves.easeInOut,
+                    );
+                    setState(() => _currentPage = index);
+                  },
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(height: 16),
                 Text(
-                  '${String.fromCharCode(36)}${product.oldPrice.toStringAsFixed(0)}',
-                  style: const TextStyle(
-                    fontSize: 14,
-                    color: AppColors.textSecondary,
-                    decoration: TextDecoration.lineThrough,
-                  ),
+                  product.title,
+                  style: Theme.of(context).textTheme.displaySmall,
+                ),
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    Text(
+                      '${String.fromCharCode(36)}${product.price.toStringAsFixed(0)}',
+                      style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: AppColors.orange),
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      '${String.fromCharCode(36)}${product.oldPrice.toStringAsFixed(0)}',
+                      style: const TextStyle(
+                        fontSize: 14,
+                        color: AppColors.textSecondary,
+                        decoration: TextDecoration.lineThrough,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  localization.translate('select_size'),
+                  style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
+                ),
+                const SizedBox(height: 8),
+                SizeChips(
+                  sizes: product.sizes,
+                  selected: _selectedSize,
+                  onSelected: (value) => setState(() => _selectedSize = value),
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      localization.translate('quantity'),
+                      style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
+                    ),
+                    QtyStepper(
+                      value: _quantity,
+                      onChanged: (value) => setState(() => _quantity = value),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  localization.translate('description'),
+                  style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  product.description,
+                  style: Theme.of(context).textTheme.bodyMedium,
+                  maxLines: 5,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ],
             ),
-            const SizedBox(height: 16),
-            const Text('Select Size', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16)),
-            const SizedBox(height: 8),
-            SizeChips(
-              sizes: product.sizes,
-              selected: _selectedSize,
-              onSelected: (value) => setState(() => _selectedSize = value),
-            ),
-            const SizedBox(height: 16),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text('Quantity', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16)),
-                QtyStepper(
-                  value: _quantity,
-                  onChanged: (value) => setState(() => _quantity = value),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            const Text('Description', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16)),
-            const SizedBox(height: 8),
-            Text(
-              product.description,
-              style: Theme.of(context).textTheme.bodyMedium,
-              maxLines: 5,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ],
-        ),
           ),
           bottomNavigationBar: SafeArea(
             top: false,
@@ -157,7 +168,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                       onPressed: () =>
                           _handleAddToCart(context, cartController, product, goToCart: false),
                       icon: const Icon(Icons.add_shopping_cart),
-                      label: const Text('Add To Cart'),
+                      label: Text(localization.translate('add_to_cart')),
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -166,7 +177,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                       onPressed: () =>
                           _handleAddToCart(context, cartController, product, goToCart: true),
                       style: ElevatedButton.styleFrom(backgroundColor: AppColors.orange),
-                      child: const Text('Buy Now'),
+                      child: Text(localization.translate('buy_now')),
                     ),
                   ),
                 ],
@@ -182,14 +193,19 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
       {required bool goToCart}) {
     final size = _selectedSize;
     if (size == null) {
+      final localization = AppLocalizations.of(context);
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select a size')),
+        SnackBar(content: Text(localization.translate('please_select_size'))),
       );
       return;
     }
     cartController.addToCart(product, size: size, quantity: _quantity);
+    final localization = AppLocalizations.of(context);
+    final message = goToCart
+        ? localization.translate('added_opening_cart')
+        : localization.translate('added_to_cart');
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(goToCart ? 'Added and opening cart' : 'Added to cart')),
+      SnackBar(content: Text(message)),
     );
     if (goToCart) {
       Navigator.of(context).pushNamed('cart');
