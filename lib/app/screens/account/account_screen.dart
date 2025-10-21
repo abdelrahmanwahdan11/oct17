@@ -40,6 +40,13 @@ class AccountScreen extends StatelessWidget {
               const SizedBox(height: 16),
               Text(localization.translate('settings'), style: Theme.of(context).textTheme.displaySmall),
               const SizedBox(height: 12),
+              ListTileSetting(
+                icon: Icons.receipt_long_outlined,
+                title: localization.translate('orders_title'),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => Navigator.of(context).pushNamed('orders'),
+              ),
+              const SizedBox(height: 12),
               const ListTileSetting(
                 icon: Icons.account_circle,
                 title: 'Account Details',

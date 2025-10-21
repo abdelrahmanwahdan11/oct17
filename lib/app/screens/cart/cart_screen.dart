@@ -69,11 +69,9 @@ class CartScreen extends StatelessWidget {
               child: SizedBox(
                 height: 56,
                 child: ElevatedButton.icon(
-                  onPressed: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text(localization.translate('checkout_mock'))),
-                    );
-                  },
+                  onPressed: lines.isEmpty
+                      ? null
+                      : () => Navigator.of(context).pushNamed('checkout'),
                   icon: const Icon(Icons.arrow_forward),
                   label: Text(localization.translate('checkout')),
                 ),

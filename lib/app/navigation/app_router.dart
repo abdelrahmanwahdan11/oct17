@@ -6,6 +6,9 @@ import '../screens/common/placeholder_screen.dart';
 import '../screens/product/product_details_screen.dart';
 import '../screens/search/filter_screen.dart';
 import '../screens/search/search_screen.dart';
+import '../screens/checkout/checkout_screen.dart';
+import '../screens/orders/order_success_screen.dart';
+import '../screens/orders/orders_screen.dart';
 
 class AppRouter {
   static Route<dynamic>? onGenerateRoute(RouteSettings settings) {
@@ -30,6 +33,14 @@ class AppRouter {
         return _buildDefaultRoute(ProductDetailsScreen(productId: productId), settings);
       case 'cart':
         return _buildDefaultRoute(const CartScreen(), settings);
+      case 'checkout':
+        return _buildDefaultRoute(const CheckoutScreen(), settings);
+      case 'order.success':
+        final arguments = settings.arguments as Map<String, dynamic>?;
+        final orderId = arguments?['orderId'] as String?;
+        return _buildDefaultRoute(OrderSuccessScreen(orderId: orderId), settings);
+      case 'orders':
+        return _buildDefaultRoute(const OrdersScreen(), settings);
       case 'search':
         return _buildDefaultRoute(const SearchScreen(), settings);
       case 'filter':
