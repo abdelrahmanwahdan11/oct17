@@ -45,11 +45,36 @@ class AppTheme {
 
   static ThemeData buildDarkTheme() {
     final base = _baseTheme(Brightness.dark);
-    final colorScheme = ColorScheme.fromSeed(
-      seedColor: AppColors.orange,
+    const colorScheme = ColorScheme(
       brightness: Brightness.dark,
+      primary: Colors.white,
+      onPrimary: Colors.black,
+      primaryContainer: Color(0x1AFFFFFF),
+      onPrimaryContainer: Colors.white,
+      secondary: Colors.white,
+      onSecondary: Colors.black,
+      secondaryContainer: Color(0x12FFFFFF),
+      onSecondaryContainer: Colors.white,
+      tertiary: Colors.white,
+      onTertiary: Colors.black,
+      tertiaryContainer: Color(0x12FFFFFF),
+      onTertiaryContainer: Colors.white,
+      error: Colors.white,
+      onError: Colors.black,
       background: AppColors.darkBackground,
+      onBackground: Colors.white,
       surface: AppColors.darkSurface,
+      onSurface: Colors.white,
+      surfaceVariant: Color(0x12FFFFFF),
+      onSurfaceVariant: Colors.white,
+      outline: Color(0x33FFFFFF),
+      outlineVariant: Color(0x1AFFFFFF),
+      shadow: Colors.black,
+      scrim: Colors.black,
+      inverseSurface: Colors.white,
+      onInverseSurface: Colors.black,
+      inversePrimary: Colors.black,
+      surfaceTint: Colors.white,
     );
 
     return base.copyWith(
@@ -68,7 +93,7 @@ class AppTheme {
       ),
       chipTheme: base.chipTheme.copyWith(
         backgroundColor: AppColors.darkSurface,
-        selectedColor: AppColors.orange.withOpacity(0.18),
+        selectedColor: const Color(0x1AFFFFFF),
         labelStyle: GoogleFonts.poppins(
           fontSize: 14,
           fontWeight: FontWeight.w500,
@@ -78,7 +103,25 @@ class AppTheme {
       inputDecorationTheme: _inputDecorationTheme(
         fillColor: AppColors.darkSurface,
         borderColor: AppColors.darkBorder,
-        focusColor: AppColors.orange,
+        focusColor: Colors.white,
+      ),
+      elevatedButtonTheme: ElevatedButtonThemeData(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Colors.white,
+          foregroundColor: Colors.black,
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+          textStyle: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w600),
+        ),
+      ),
+      outlinedButtonTheme: OutlinedButtonThemeData(
+        style: OutlinedButton.styleFrom(
+          foregroundColor: Colors.white,
+          side: const BorderSide(color: Colors.white),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+          textStyle: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w600),
+        ),
       ),
     );
   }

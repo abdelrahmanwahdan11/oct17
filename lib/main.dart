@@ -6,6 +6,7 @@ import 'app/controllers/cart_controller.dart';
 import 'app/controllers/locale_controller.dart';
 import 'app/controllers/orders_controller.dart';
 import 'app/controllers/products_controller.dart';
+import 'app/controllers/settings_controller.dart';
 import 'app/controllers/theme_controller.dart';
 import 'app/controllers/wishlist_controller.dart';
 import 'app/localization/app_localizations.dart';
@@ -43,6 +44,7 @@ class _FashionAppState extends State<FashionApp> {
   late final LocaleController _localeController;
   late final AuthController _authController;
   late final ThemeController _themeController;
+  late final SettingsController _settingsController;
 
   bool _isReady = false;
   String _initialRoute = 'home';
@@ -71,6 +73,7 @@ class _FashionAppState extends State<FashionApp> {
     _localeController = LocaleController(storage: storage);
     _authController = AuthController(storage: storage);
     _themeController = ThemeController(storage: storage);
+    _settingsController = SettingsController(storage: storage);
 
     _wishlistController.addListener(() {
       _productsController.syncFavorites(_wishlistController.favoriteIds);
@@ -88,6 +91,7 @@ class _FashionAppState extends State<FashionApp> {
     await _wishlistController.loadFavorites();
     await _cartController.loadCart();
     await _ordersController.initialize();
+    await _settingsController.initialize();
     await _productsController.initialize(favoriteIds: _wishlistController.favoriteIds);
     setState(() {
       _initialRoute = _authController.initialRoute;
@@ -106,6 +110,7 @@ class _FashionAppState extends State<FashionApp> {
     _authController.removeListener(_handleAuthStateChanged);
     _authController.dispose();
     _themeController.dispose();
+    _settingsController.dispose();
     super.dispose();
   }
 
@@ -137,6 +142,7 @@ class _FashionAppState extends State<FashionApp> {
             orders: _ordersController,
             auth: _authController,
             theme: _themeController,
+            settings: _settingsController,
             child: AnimatedBuilder(
               animation: Listenable.merge([
                 _localeController,

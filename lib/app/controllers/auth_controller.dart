@@ -105,6 +105,62 @@ class AuthController extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> updateProfile({
+    required String name,
+    required String email,
+  }) async {
+    final user = _currentUser;
+    if (user == null) {
+      throw AuthException('auth.generic_error');
+    }
+    final normalizedEmail = email.toLowerCase();
+    final hasConflict = _registeredUsers.any(
+      (registered) =>
+          registered.email == normalizedEmail && registered.id != user.id,
+    );
+    if (hasConflict) {
+      throw AuthException('auth.email_in_use');
+    }
+
+    final index = _registeredUsers.indexWhere((element) => element.id == user.id);
+    if (index == -1) {
+      throw AuthException('auth.generic_error');
+    }
+
+    final updatedUser = _registeredUsers[index].copyWith(
+      name: name.trim(),
+      email: normalizedEmail,
+    );
+
+    _registeredUsers[index] = updatedUser;
+    await _persistUsers();
+    await _setCurrentUser(updatedUser);
+    notifyListeners();
+  }
+
+  Future<void> changePassword({
+    required String currentPassword,
+    required String newPassword,
+  }) async {
+    final user = _currentUser;
+    if (user == null) {
+      throw AuthException('auth.generic_error');
+    }
+
+    final index = _registeredUsers.indexWhere((element) => element.id == user.id);
+    if (index == -1) {
+      throw AuthException('auth.generic_error');
+    }
+
+    final stored = _registeredUsers[index];
+    if (stored.password != currentPassword) {
+      throw AuthException('auth.invalid_password');
+    }
+
+    _registeredUsers[index] = stored.copyWith(password: newPassword);
+    await _persistUsers();
+  }
+
   Future<void> _persistUsers() async {
     await storage.setStringList(
       _usersKey,
@@ -145,6 +201,21 @@ class _StoredUser {
   final String email;
   final String password;
   final String avatar;
+
+  _StoredUser copyWith({
+    String? name,
+    String? email,
+    String? password,
+    String? avatar,
+  }) {
+    return _StoredUser(
+      id: id,
+      name: name ?? this.name,
+      email: (email ?? this.email).toLowerCase(),
+      password: password ?? this.password,
+      avatar: avatar ?? this.avatar,
+    );
+  }
 
   factory _StoredUser.fromJson(Map<String, dynamic> json) {
     return _StoredUser(

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../localization/app_localizations.dart';
+
 class PromoBanner extends StatelessWidget {
   const PromoBanner({super.key});
 
@@ -7,10 +9,11 @@ class PromoBanner extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+    final localization = AppLocalizations.of(context);
     final gradient = LinearGradient(
       colors: isDark
-          ? [theme.colorScheme.primary.withOpacity(0.8), theme.colorScheme.primaryContainer]
-          : [theme.colorScheme.primary, theme.colorScheme.primaryContainer],
+          ? [Colors.white.withOpacity(0.12), Colors.white.withOpacity(0.04)]
+          : [theme.colorScheme.primary, theme.colorScheme.primaryContainer ?? theme.colorScheme.primary.withOpacity(0.7)],
       begin: Alignment.topLeft,
       end: Alignment.bottomRight,
     );
@@ -30,22 +33,27 @@ class PromoBanner extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(
-                  'Get Your Special Sale Up to 40%',
-                  style: theme.textTheme.displaySmall?.copyWith(color: theme.colorScheme.onPrimary),
+                  localization.translate('promo_title'),
+                  style: theme.textTheme.displaySmall?.copyWith(
+                    color: isDark ? Colors.white : theme.colorScheme.onPrimary,
+                  ),
                 ),
                 const SizedBox(height: 12),
                 ElevatedButton.icon(
                   onPressed: () {},
                   icon: const Icon(Icons.arrow_forward),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: theme.colorScheme.onPrimary,
-                    foregroundColor: theme.colorScheme.primary,
+                    backgroundColor: isDark ? Colors.white : theme.colorScheme.onPrimary,
+                    foregroundColor: isDark ? Colors.black : theme.colorScheme.primary,
                     padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                   ),
                   label: Text(
-                    'Shop Now',
-                    style: theme.textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w600),
+                    localization.translate('promo_cta'),
+                    style: theme.textTheme.bodyLarge?.copyWith(
+                      fontWeight: FontWeight.w600,
+                      color: isDark ? Colors.black : null,
+                    ),
                   ),
                 ),
               ],

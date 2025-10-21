@@ -160,36 +160,7 @@ class _ShoppingScreenState extends State<ShoppingScreen> {
                         child: Center(child: CircularProgressIndicator()),
                       ),
                     const SizedBox(height: 12),
-                    Container(
-                      height: 92,
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [
-                            Theme.of(context).colorScheme.primary,
-                            Theme.of(context).colorScheme.primaryContainer,
-                          ],
-                        ),
-                        borderRadius: BorderRadius.circular(18),
-                      ),
-                      padding: const EdgeInsets.symmetric(horizontal: 18),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: Text(
-                              '40% Get Your Special Sale Up To',
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .displaySmall
-                                  ?.copyWith(color: Theme.of(context).colorScheme.onPrimary),
-                            ),
-                          ),
-                          ElevatedButton(
-                            onPressed: () {},
-                            child: const Icon(Icons.arrow_forward),
-                          ),
-                        ],
-                      ),
-                    ),
+                    _ShoppingPromoBanner(text: localization.translate('shopping_banner_title')),
                   ],
                 ),
               ),
@@ -206,6 +177,52 @@ class _ShoppingScreenState extends State<ShoppingScreen> {
     final localization = AppLocalizations.of(context);
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(localization.translate('added_to_cart'))),
+    );
+  }
+}
+
+class _ShoppingPromoBanner extends StatelessWidget {
+  const _ShoppingPromoBanner({required this.text});
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final gradient = LinearGradient(
+      colors: isDark
+          ? [Colors.white.withOpacity(0.12), Colors.white.withOpacity(0.05)]
+          : [theme.colorScheme.primary, theme.colorScheme.primaryContainer ?? theme.colorScheme.primary.withOpacity(0.7)],
+    );
+
+    return Container(
+      height: 92,
+      decoration: BoxDecoration(
+        gradient: gradient,
+        borderRadius: BorderRadius.circular(18),
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 18),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(
+              text,
+              style: theme.textTheme.displaySmall?.copyWith(
+                color: isDark ? Colors.white : theme.colorScheme.onPrimary,
+              ),
+            ),
+          ),
+          ElevatedButton(
+            onPressed: () {},
+            style: ElevatedButton.styleFrom(
+              backgroundColor: isDark ? Colors.white : theme.colorScheme.onPrimary,
+              foregroundColor: isDark ? Colors.black : theme.colorScheme.primary,
+            ),
+            child: const Icon(Icons.arrow_forward),
+          ),
+        ],
+      ),
     );
   }
 }

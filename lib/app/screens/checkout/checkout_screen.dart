@@ -420,16 +420,19 @@ class _SummaryTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final product = line.product;
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final localization = AppLocalizations.of(context);
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: theme.cardColor,
         borderRadius: BorderRadius.circular(18),
-        boxShadow: const [
+        boxShadow: [
           BoxShadow(
-            color: Color.fromRGBO(0, 0, 0, 0.05),
+            color: isDark ? Colors.white12 : Colors.black.withOpacity(0.05),
             blurRadius: 12,
-            offset: Offset(0, 4),
+            offset: const Offset(0, 4),
           ),
         ],
       ),
@@ -445,17 +448,33 @@ class _SummaryTile extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(product.title, style: const TextStyle(fontWeight: FontWeight.w600)),
+                Text(
+                  product.title,
+                  style: theme.textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w600),
+                ),
                 const SizedBox(height: 4),
-                Text('Size: ${line.item.size}', style: const TextStyle(color: AppColors.textSecondary)),
+                Text(
+                  '${localization.translate('size_label')}: ${line.item.size}',
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: theme.colorScheme.onSurface.withOpacity(0.6),
+                  ),
+                ),
                 const SizedBox(height: 4),
-                Text('Qty: ${line.item.quantity}', style: const TextStyle(color: AppColors.textSecondary)),
+                Text(
+                  '${localization.translate('quantity_short')}: ${line.item.quantity}',
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: theme.colorScheme.onSurface.withOpacity(0.6),
+                  ),
+                ),
               ],
             ),
           ),
           Text(
             '${String.fromCharCode(36)}${product.price.toStringAsFixed(0)}',
-            style: const TextStyle(fontWeight: FontWeight.w700, color: AppColors.orange),
+            style: theme.textTheme.bodyLarge?.copyWith(
+              fontWeight: FontWeight.w700,
+              color: theme.colorScheme.primary,
+            ),
           ),
         ],
       ),

@@ -24,22 +24,39 @@ class HomeScreen extends StatelessWidget {
     final productsController = scope.products;
     final wishlistController = scope.wishlist;
     final cartController = scope.cart;
+    final authController = scope.auth;
     final localization = AppLocalizations.of(context);
 
     return AnimatedBuilder(
       animation: productsController,
       builder: (context, _) {
-        final isLoading =
+        final isPopularLoading =
             productsController.isLoading && productsController.popularProducts.isEmpty;
-        final products = productsController.popularProducts;
+        final popularProducts = productsController.popularProducts;
+        final catalogProducts = productsController.gridProducts;
+        final isCatalogLoading =
+            productsController.isLoading && catalogProducts.isEmpty;
         return Scaffold(
-            appBar: const _HomeAppBar(),
-            body: RefreshIndicator(
-              onRefresh: productsController.refresh,
+          appBar: _HomeAppBar(userName: authController.currentUser?.name),
+          body: RefreshIndicator(
+            onRefresh: productsController.refresh,
+            child: NotificationListener<ScrollNotification>(
+              onNotification: (notification) {
+                if (notification.metrics.pixels >=
+                        notification.metrics.maxScrollExtent - 120 &&
+                    productsController.hasMore &&
+                    !productsController.isLoadingMore) {
+                  productsController.loadMore();
+                }
+                return false;
+              },
               child: responsiveConstrainedBody(
                 context,
                 ListView(
                   padding: responsivePagePadding(context),
+                  physics: const BouncingScrollPhysics(
+                    parent: AlwaysScrollableScrollPhysics(),
+                  ),
                   children: [
                     AppSearchBar(
                       hintText: localization.translate('search_hint'),
@@ -80,7 +97,7 @@ class HomeScreen extends StatelessWidget {
                       duration: const Duration(milliseconds: 320),
                       switchInCurve: Curves.easeOutCubic,
                       switchOutCurve: Curves.easeInCubic,
-                      child: isLoading
+                      child: isPopularLoading
                           ? const Center(
                               key: ValueKey('home_loading'),
                               child: Padding(
@@ -89,7 +106,7 @@ class HomeScreen extends StatelessWidget {
                               ),
                             )
                           : SizedBox(
-                              key: ValueKey<int>(products.length),
+                              key: ValueKey<int>(popularProducts.length),
                               child: LayoutBuilder(
                                 builder: (context, constraints) {
                                   final width = constraints.maxWidth;
@@ -104,10 +121,10 @@ class HomeScreen extends StatelessWidget {
                                     height: cardWidth * 1.35,
                                     child: ListView.separated(
                                       scrollDirection: Axis.horizontal,
-                                      itemCount: products.length,
+                                      itemCount: popularProducts.length,
                                       separatorBuilder: (_, __) => const SizedBox(width: 14),
                                       itemBuilder: (context, index) {
-                                        final product = products[index];
+                                        final product = popularProducts[index];
                                         return ProductCard(
                                           product: product,
                                           width: cardWidth,
@@ -115,8 +132,10 @@ class HomeScreen extends StatelessWidget {
                                             'product.details',
                                             arguments: {'id': product.id},
                                           ),
-                                          onToggleFavorite: () => wishlistController.toggleFavorite(product.id),
-                                          onAddToCart: () => _addToCart(context, cartController, product),
+                                          onToggleFavorite: () =>
+                                              wishlistController.toggleFavorite(product.id),
+                                          onAddToCart: () =>
+                                              _addToCart(context, cartController, product),
                                         );
                                       },
                                     ),
@@ -125,11 +144,91 @@ class HomeScreen extends StatelessWidget {
                               ),
                             ),
                     ),
+                    const SizedBox(height: 20),
+                    SectionHeader(
+                      title: localization.translate('home_catalogs_title'),
+                      actionLabel: localization.translate('see_all'),
+                      onAction: () {},
+                    ),
+                    const SizedBox(height: 12),
+                    AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 350),
+                      switchInCurve: Curves.easeOutCubic,
+                      switchOutCurve: Curves.easeInCubic,
+                      child: isCatalogLoading
+                          ? const Padding(
+                              key: ValueKey('catalog_loading'),
+                              padding: EdgeInsets.symmetric(vertical: 48),
+                              child: Center(child: CircularProgressIndicator()),
+                            )
+                          : LayoutBuilder(
+                              key: ValueKey<int>(catalogProducts.length),
+                              builder: (context, constraints) {
+                                final width = constraints.maxWidth;
+                                final crossAxisCount = width >= 1200
+                                    ? 4
+                                    : width >= 900
+                                        ? 3
+                                        : 2;
+                                final itemWidth =
+                                    (width - (crossAxisCount - 1) * 14) / crossAxisCount;
+                                return GridView.builder(
+                                  shrinkWrap: true,
+                                  physics: const NeverScrollableScrollPhysics(),
+                                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                                    crossAxisCount: crossAxisCount,
+                                    crossAxisSpacing: 14,
+                                    mainAxisSpacing: 14,
+                                    childAspectRatio: itemWidth / (itemWidth * 1.35),
+                                  ),
+                                  itemCount: catalogProducts.length,
+                                  itemBuilder: (context, index) {
+                                    final product = catalogProducts[index];
+                                    final computedDuration = 320 + index * 35;
+                                    final animationDuration = Duration(
+                                      milliseconds: computedDuration > 520 ? 520 : computedDuration,
+                                    );
+                                    return TweenAnimationBuilder<double>(
+                                      tween: Tween(begin: 0.9, end: 1),
+                                      duration: animationDuration,
+                                      curve: Curves.easeOutBack,
+                                      builder: (context, value, child) {
+                                        return Transform.scale(
+                                          scale: value,
+                                          child: Opacity(
+                                            opacity: value.clamp(0.0, 1.0),
+                                            child: child,
+                                          ),
+                                        );
+                                      },
+                                      child: ProductCard(
+                                        product: product,
+                                        onTap: () => Navigator.of(context).pushNamed(
+                                          'product.details',
+                                          arguments: {'id': product.id},
+                                        ),
+                                        onToggleFavorite: () =>
+                                            wishlistController.toggleFavorite(product.id),
+                                        onAddToCart: () =>
+                                            _addToCart(context, cartController, product),
+                                      ),
+                                    );
+                                  },
+                                );
+                              },
+                            ),
+                    ),
+                    if (productsController.isLoadingMore)
+                      const Padding(
+                        padding: EdgeInsets.symmetric(vertical: 20),
+                        child: Center(child: CircularProgressIndicator()),
+                      ),
                   ],
                 ),
               ),
             ),
-          );
+          ),
+        );
       },
     );
   }
@@ -145,11 +244,14 @@ class HomeScreen extends StatelessWidget {
 }
 
 class _HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
-  const _HomeAppBar();
+  const _HomeAppBar({this.userName});
+
+  final String? userName;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final localization = AppLocalizations.of(context);
     final subtitleStyle = theme.textTheme.bodyMedium?.copyWith(
       color: theme.colorScheme.onSurface.withOpacity(0.6),
     );
@@ -158,9 +260,17 @@ class _HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
       title: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Hello Alex,', style: subtitleStyle),
+          Text(
+            localization
+                .translate('greeting_title')
+                .replaceFirst('{name}', userName ?? localization.translate('default_user_name')),
+            style: subtitleStyle,
+          ),
           const SizedBox(height: 4),
-          Text('Good Morning!', style: theme.textTheme.displaySmall),
+          Text(
+            localization.translate('greeting_subtitle'),
+            style: theme.textTheme.displaySmall,
+          ),
         ],
       ),
       leadingWidth: 64,

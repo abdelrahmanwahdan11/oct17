@@ -65,12 +65,20 @@ class AppRouter {
       reverseTransitionDuration: const Duration(milliseconds: 220),
       pageBuilder: (context, animation, secondaryAnimation) => page,
       transitionsBuilder: (context, animation, secondaryAnimation, child) {
-        final offsetAnimation = Tween<Offset>(begin: const Offset(0, 0.02), end: Offset.zero)
-            .animate(CurvedAnimation(parent: animation, curve: Curves.easeOutCubic));
         final fadeAnimation = CurvedAnimation(parent: animation, curve: Curves.easeInOut);
+        final slideAnimation = Tween<Offset>(
+          begin: const Offset(0, 0.05),
+          end: Offset.zero,
+        ).animate(CurvedAnimation(parent: animation, curve: Curves.easeOutCubic));
+        final scaleAnimation = Tween<double>(begin: 0.94, end: 1)
+            .animate(CurvedAnimation(parent: animation, curve: Curves.easeOutBack));
+
         return FadeTransition(
           opacity: fadeAnimation,
-          child: SlideTransition(position: offsetAnimation, child: child),
+          child: SlideTransition(
+            position: slideAnimation,
+            child: ScaleTransition(scale: scaleAnimation, child: child),
+          ),
         );
       },
     );
