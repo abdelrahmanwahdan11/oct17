@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 
-import '../../../core/l10n/app_localizations.dart';
-import '../../../core/router/app_router.dart';
-import '../../../core/utils/app_scope.dart';
-import '../../widgets/app_background.dart';
+import '../../controllers/auth_controller.dart';
+import '../../localization/app_localizations.dart';
+import '../../navigation/app_scope.dart';
+import '../../utils/responsive.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -17,99 +17,224 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
-  bool _loading = false;
+  final _confirmController = TextEditingController();
+
+  bool _obscurePassword = true;
+  bool _obscureConfirm = true;
+  bool _isSubmitting = false;
+  String? _errorMessage;
 
   @override
   void dispose() {
     _nameController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
+    _confirmController.dispose();
     super.dispose();
   }
 
   Future<void> _submit() async {
-    if (!_formKey.currentState!.validate()) return;
-    setState(() => _loading = true);
-    final deps = AppScope.of(context);
-    await deps.authController.register(
-      _emailController.text,
-      _passwordController.text,
-      _nameController.text,
-    );
-    if (!mounted) return;
-    setState(() => _loading = false);
-    Navigator.of(context).pushReplacementNamed(AppRoutes.homeDiscovery);
+    final localization = AppLocalizations.of(context);
+    if (!_formKey.currentState!.validate()) {
+      setState(() => _errorMessage = localization.translate('validation_required'));
+      return;
+    }
+    setState(() {
+      _isSubmitting = true;
+      _errorMessage = null;
+    });
+    final auth = AppScope.of(context).auth;
+    try {
+      await auth.register(
+        name: _nameController.text.trim(),
+        email: _emailController.text.trim(),
+        password: _passwordController.text,
+      );
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(localization.translate('auth_account_created'))),
+      );
+    } on AuthException catch (error) {
+      setState(() {
+        _errorMessage = localization.translate(error.code);
+      });
+    } catch (_) {
+      setState(() {
+        _errorMessage = localization.translate('auth_generic_error');
+      });
+    } finally {
+      if (mounted) {
+        setState(() => _isSubmitting = false);
+      }
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    final strings = AppLocalizations.of(context);
+    final localization = AppLocalizations.of(context);
+    final theme = Theme.of(context);
     return Scaffold(
-      body: OrrisoBackground(
-        child: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.all(24),
-            child: Form(
-              key: _formKey,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      IconButton(
-                        onPressed: () => Navigator.of(context).pop(),
-                        icon: const Icon(Icons.arrow_back_ios_new),
+      appBar: AppBar(
+        title: Text(localization.translate('register_title')),
+      ),
+      body: Center(
+        child: SingleChildScrollView(
+          padding: responsivePagePadding(context, vertical: 32),
+          child: ConstrainedBox(
+            constraints: responsiveFormConstraints(context),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Hero(
+                  tag: 'auth.card',
+                  child: Material(
+                    color: theme.cardColor,
+                    elevation: 0,
+                    borderRadius: BorderRadius.circular(24),
+                    child: Padding(
+                      padding: const EdgeInsets.all(24),
+                      child: Form(
+                        key: _formKey,
+                        child: AutofillGroup(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              Text(
+                                localization.translate('register_heading'),
+                                style: theme.textTheme.displayMedium,
+                              ),
+                              const SizedBox(height: 12),
+                              Text(
+                                localization.translate('register_subtitle'),
+                                style: theme.textTheme.bodyLarge?.copyWith(
+                                  color: theme.colorScheme.onSurface.withOpacity(0.7),
+                                ),
+                              ),
+                              const SizedBox(height: 24),
+                              TextFormField(
+                                controller: _nameController,
+                                autofillHints: const [AutofillHints.name],
+                                decoration: InputDecoration(
+                                  labelText: localization.translate('name_label'),
+                                  prefixIcon: const Icon(Icons.person_outline),
+                                ),
+                                validator: (value) {
+                                  if (value == null || value.isEmpty) {
+                                    return localization.translate('validation_required');
+                                  }
+                                  if (value.trim().length < 3) {
+                                    return localization.translate('validation_name_length');
+                                  }
+                                  return null;
+                                },
+                              ),
+                              const SizedBox(height: 16),
+                              TextFormField(
+                                controller: _emailController,
+                                autofillHints: const [AutofillHints.email],
+                                keyboardType: TextInputType.emailAddress,
+                                decoration: InputDecoration(
+                                  labelText: localization.translate('email_label'),
+                                  prefixIcon: const Icon(Icons.email_outlined),
+                                ),
+                                validator: (value) {
+                                  if (value == null || value.isEmpty) {
+                                    return localization.translate('validation_required');
+                                  }
+                                  final emailRegex = RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$');
+                                  if (!emailRegex.hasMatch(value.trim())) {
+                                    return localization.translate('validation_email');
+                                  }
+                                  return null;
+                                },
+                              ),
+                              const SizedBox(height: 16),
+                              TextFormField(
+                                controller: _passwordController,
+                                autofillHints: const [AutofillHints.newPassword],
+                                obscureText: _obscurePassword,
+                                decoration: InputDecoration(
+                                  labelText: localization.translate('password_label'),
+                                  prefixIcon: const Icon(Icons.lock_outline),
+                                  suffixIcon: IconButton(
+                                    onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+                                    icon: Icon(_obscurePassword ? Icons.visibility_off : Icons.visibility),
+                                  ),
+                                ),
+                                validator: (value) {
+                                  if (value == null || value.isEmpty) {
+                                    return localization.translate('validation_required');
+                                  }
+                                  if (value.length < 6) {
+                                    return localization.translate('validation_password_length');
+                                  }
+                                  return null;
+                                },
+                              ),
+                              const SizedBox(height: 16),
+                              TextFormField(
+                                controller: _confirmController,
+                                autofillHints: const [AutofillHints.newPassword],
+                                obscureText: _obscureConfirm,
+                                decoration: InputDecoration(
+                                  labelText: localization.translate('confirm_password_label'),
+                                  prefixIcon: const Icon(Icons.lock),
+                                  suffixIcon: IconButton(
+                                    onPressed: () => setState(() => _obscureConfirm = !_obscureConfirm),
+                                    icon: Icon(_obscureConfirm ? Icons.visibility_off : Icons.visibility),
+                                  ),
+                                ),
+                                validator: (value) {
+                                  if (value == null || value.isEmpty) {
+                                    return localization.translate('validation_required');
+                                  }
+                                  if (value != _passwordController.text) {
+                                    return localization.translate('validation_password_match');
+                                  }
+                                  return null;
+                                },
+                              ),
+                              const SizedBox(height: 12),
+                              AnimatedSwitcher(
+                                duration: const Duration(milliseconds: 200),
+                                child: _errorMessage == null
+                                    ? const SizedBox.shrink()
+                                    : Padding(
+                                        padding: const EdgeInsets.only(bottom: 12),
+                                        child: Text(
+                                          _errorMessage!,
+                                          style: theme.textTheme.bodyMedium?.copyWith(
+                                            color: theme.colorScheme.error,
+                                          ),
+                                        ),
+                                      ),
+                              ),
+                              const SizedBox(height: 8),
+                              ElevatedButton(
+                                onPressed: _isSubmitting ? null : _submit,
+                                child: _isSubmitting
+                                    ? const SizedBox(
+                                        height: 20,
+                                        width: 20,
+                                        child: CircularProgressIndicator(strokeWidth: 2),
+                                      )
+                                    : Text(localization.translate('register_button')),
+                              ),
+                              const SizedBox(height: 16),
+                              TextButton(
+                                onPressed: _isSubmitting
+                                    ? null
+                                    : () => Navigator.of(context).pushReplacementNamed('auth.login'),
+                                child: Text(localization.translate('register_have_account')),
+                              ),
+                            ],
+                          ),
+                        ),
                       ),
-                      Text(
-                        strings.t('auth.register'),
-                        style: Theme.of(context).textTheme.headlineLarge,
-                      ),
-                    ],
+                    ),
                   ),
-                  const SizedBox(height: 32),
-                  TextFormField(
-                    controller: _nameController,
-                    validator: (value) => value == null || value.isEmpty ? strings.t('auth.name') : null,
-                    decoration: InputDecoration(labelText: strings.t('auth.name')),
-                  ),
-                  const SizedBox(height: 16),
-                  TextFormField(
-                    controller: _emailController,
-                    keyboardType: TextInputType.emailAddress,
-                    validator: (value) => value != null && value.contains('@') ? null : strings.t('auth.email'),
-                    decoration: InputDecoration(labelText: strings.t('auth.email')),
-                  ),
-                  const SizedBox(height: 16),
-                  TextFormField(
-                    controller: _passwordController,
-                    obscureText: true,
-                    validator: (value) => value != null && value.length >= 6 ? null : 'min 6',
-                    decoration: InputDecoration(labelText: strings.t('auth.password')),
-                  ),
-                  const SizedBox(height: 24),
-                  ElevatedButton(
-                    onPressed: _loading ? null : _submit,
-                    child: _loading
-                        ? const SizedBox(
-                            width: 24,
-                            height: 24,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          )
-                        : Text(strings.t('auth.register')),
-                  ),
-                  const Spacer(),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(strings.t('auth.haveAccount')),
-                      TextButton(
-                        onPressed: () => Navigator.of(context).pushReplacementNamed(AppRoutes.authLogin),
-                        child: Text(strings.t('auth.login')),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
         ),

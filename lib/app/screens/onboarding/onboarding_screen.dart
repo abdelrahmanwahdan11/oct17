@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 
-import '../../../core/l10n/app_localizations.dart';
-import '../../../core/router/app_router.dart';
-import '../../../core/utils/app_scope.dart';
-import '../../widgets/app_background.dart';
+import '../../localization/app_localizations.dart';
+import '../../navigation/app_scope.dart';
+import '../../theme/app_colors.dart';
+import '../../utils/responsive.dart';
 
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
@@ -13,14 +13,26 @@ class OnboardingScreen extends StatefulWidget {
 }
 
 class _OnboardingScreenState extends State<OnboardingScreen> {
-  late final PageController _controller;
-  int _page = 0;
+  final PageController _controller = PageController();
+  int _index = 0;
 
-  @override
-  void initState() {
-    super.initState();
-    _controller = PageController();
-  }
+  final List<_OnboardingContent> _pages = const [
+    _OnboardingContent(
+      image: 'assets/images/promo_girl.png',
+      titleKey: 'onboarding_title_1',
+      subtitleKey: 'onboarding_subtitle_1',
+    ),
+    _OnboardingContent(
+      image: 'assets/images/men_1.png',
+      titleKey: 'onboarding_title_2',
+      subtitleKey: 'onboarding_subtitle_2',
+    ),
+    _OnboardingContent(
+      image: 'assets/images/women_1.png',
+      titleKey: 'onboarding_title_3',
+      subtitleKey: 'onboarding_subtitle_3',
+    ),
+  ];
 
   @override
   void dispose() {
@@ -28,132 +40,183 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     super.dispose();
   }
 
-  void _complete() {
-    final deps = AppScope.of(context);
-    deps.storage.setOnboardingDone();
-    Navigator.of(context).pushReplacementNamed(AppRoutes.authLogin);
+  void _onNext() {
+    if (_index >= _pages.length - 1) {
+      AppScope.of(context).auth.completeOnboarding();
+      return;
+    }
+    _controller.nextPage(duration: const Duration(milliseconds: 300), curve: Curves.easeOutCubic);
   }
 
   @override
   Widget build(BuildContext context) {
-    final strings = AppLocalizations.of(context);
-    final pages = [
-      (strings.t('onboarding.title1'), strings.t('onboarding.body1')),
-      (strings.t('onboarding.title2'), strings.t('onboarding.body2')),
-      (strings.t('onboarding.title3'), strings.t('onboarding.body3')),
-    ];
+    final localization = AppLocalizations.of(context);
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return Scaffold(
-      body: OrrisoBackground(
-        child: SafeArea(
-          child: Column(
-            children: [
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                child: Row(
-                  children: [
-                    Text(
-                      strings.t('app.name'),
-                      style: Theme.of(context).textTheme.titleLarge,
+      body: SafeArea(
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final padding = responsivePadding(context);
+            return Padding(
+              padding: EdgeInsets.symmetric(horizontal: padding, vertical: 24),
+              child: Column(
+                children: [
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: TextButton(
+                      onPressed: () => AppScope.of(context).auth.completeOnboarding(),
+                      child: Text(localization.translate('onboarding_skip')),
                     ),
-                    const Spacer(),
-                    TextButton(
-                      onPressed: _complete,
-                      child: Text(strings.t('general.skip')),
+                  ),
+                  Expanded(
+                    child: PageView.builder(
+                      controller: _controller,
+                      itemCount: _pages.length,
+                      onPageChanged: (value) => setState(() => _index = value),
+                      itemBuilder: (context, index) {
+                        final content = _pages[index];
+                        return _OnboardingSlide(
+                          content: content,
+                          isDark: isDark,
+                          localization: localization,
+                        );
+                      },
                     ),
-                  ],
-                ),
-              ),
-              Expanded(
-                child: PageView.builder(
-                  controller: _controller,
-                  onPageChanged: (value) => setState(() => _page = value),
-                  itemCount: pages.length,
-                  itemBuilder: (context, index) {
-                    final page = pages[index];
-                    return Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 24),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          GlassSurface(
-                            padding: const EdgeInsets.all(32),
-                            child: Icon(
-                              Icons.auto_awesome,
-                              size: 64,
-                              color: Theme.of(context).colorScheme.primary,
-                            ),
+                  ),
+                  const SizedBox(height: 24),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      for (var i = 0; i < _pages.length; i++)
+                        AnimatedContainer(
+                          duration: const Duration(milliseconds: 300),
+                          margin: const EdgeInsets.symmetric(horizontal: 4),
+                          height: 10,
+                          width: _index == i ? 28 : 10,
+                          decoration: BoxDecoration(
+                            color: _index == i
+                                ? AppColors.orange
+                                : (isDark ? AppColors.darkBorder : AppColors.border),
+                            borderRadius: BorderRadius.circular(16),
                           ),
-                          const SizedBox(height: 24),
-                          Text(
-                            page.$1,
-                            textAlign: TextAlign.center,
-                            style: Theme.of(context).textTheme.headlineLarge,
-                          ),
-                          const SizedBox(height: 16),
-                          Text(
-                            page.$2,
-                            textAlign: TextAlign.center,
-                            style: Theme.of(context)
-                                .textTheme
-                                .bodyLarge
-                                ?.copyWith(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7)),
-                          ),
-                        ],
+                        ),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: _onNext,
+                      style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 16),
                       ),
-                    );
-                  },
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.all(24),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: List.generate(
-                          pages.length,
-                          (index) => AnimatedContainer(
-                            duration: const Duration(milliseconds: 220),
-                            margin: const EdgeInsets.symmetric(horizontal: 4),
-                            width: index == _page ? 24 : 10,
-                            height: 10,
-                            decoration: BoxDecoration(
-                              color: index == _page
-                                  ? Theme.of(context).colorScheme.primary
-                                  : Colors.white.withOpacity(0.3),
-                              borderRadius: BorderRadius.circular(999),
-                            ),
-                          ),
+                      child: Text(
+                        localization.translate(
+                          _index == _pages.length - 1
+                              ? 'onboarding_get_started'
+                              : 'onboarding_next',
                         ),
                       ),
                     ),
-                    const SizedBox(width: 16),
-                    ElevatedButton(
-                      onPressed: () {
-                        if (_page == pages.length - 1) {
-                          _complete();
-                        } else {
-                          _controller.nextPage(
-                            duration: const Duration(milliseconds: 250),
-                            curve: Curves.easeInOut,
-                          );
-                        }
-                      },
-                      child: Text(
-                        _page == pages.length - 1
-                            ? strings.t('general.getStarted')
-                            : strings.t('general.next'),
-                      ),
-                    ),
-                  ],
-                ),
+                  ),
+                ],
               ),
-            ],
-          ),
+            );
+          },
         ),
       ),
     );
   }
+}
+
+class _OnboardingSlide extends StatelessWidget {
+  const _OnboardingSlide({
+    required this.content,
+    required this.isDark,
+    required this.localization,
+  });
+
+  final _OnboardingContent content;
+  final bool isDark;
+  final AppLocalizations localization;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Expanded(
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 400),
+            curve: Curves.easeOutCubic,
+            margin: const EdgeInsets.symmetric(vertical: 24),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: isDark
+                    ? [
+                        AppColors.orange.withOpacity(0.2),
+                        AppColors.orangeDark.withOpacity(0.15),
+                      ]
+                    : [
+                        AppColors.orangeSoft,
+                        AppColors.orangeSoft.withOpacity(0.7),
+                      ],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(32),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(32),
+              child: Hero(
+                tag: content.image,
+                child: Image.asset(
+                  content.image,
+                  fit: BoxFit.contain,
+                ),
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(height: 12),
+        AnimatedSwitcher(
+          duration: const Duration(milliseconds: 250),
+          child: Text(
+            localization.translate(content.titleKey),
+            key: ValueKey(content.titleKey),
+            textAlign: TextAlign.center,
+            style: theme.textTheme.displayMedium,
+          ),
+        ),
+        const SizedBox(height: 12),
+        AnimatedSwitcher(
+          duration: const Duration(milliseconds: 250),
+          child: Text(
+            localization.translate(content.subtitleKey),
+            key: ValueKey(content.subtitleKey),
+            textAlign: TextAlign.center,
+            style: theme.textTheme.bodyLarge?.copyWith(
+              color: isDark ? AppColors.darkTextSecondary : AppColors.textSecondary,
+            ),
+          ),
+        ),
+        const SizedBox(height: 12),
+      ],
+    );
+  }
+}
+
+class _OnboardingContent {
+  const _OnboardingContent({
+    required this.image,
+    required this.titleKey,
+    required this.subtitleKey,
+  });
+
+  final String image;
+  final String titleKey;
+  final String subtitleKey;
 }

@@ -1,13 +1,15 @@
-name: app_scaffold
-description: A production-grade Flutter scaffold with bilingual support and offline seed data.
+name: fashion_shop
+description: Fashion shop UI application built with Flutter.
 publish_to: 'none'
 version: 0.1.0+1
 
 environment:
-  sdk: '>=3.1.0 <4.0.0'
+  sdk: '>=3.22.0 <4.0.0'
 
 dependencies:
   flutter:
+    sdk: flutter
+  flutter_localizations:
     sdk: flutter
   google_fonts: ^6.0.0
   shared_preferences: ^2.2.0
@@ -20,7 +22,4 @@ dev_dependencies:
 flutter:
   uses-material-design: true
   assets:
-    - assets/l10n/
-    - assets/seed/
     - assets/images/
-    - assets/brand/
